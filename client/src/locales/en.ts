@@ -126,6 +126,8 @@ const en = {
       playAgain: 'Play again',
     },
     errors: {
+      nameRequired: 'Please enter a nickname',
+      codeRequired: 'Please enter a room code',
       not_host: 'Only the host can do that',
       room_not_found: "Room not found — check the code",
       name_taken: 'That nickname is taken, try another',
@@ -133,6 +135,8 @@ const en = {
       already_started: 'The game has already started',
       invalid_config: 'Invalid game settings, please adjust and retry',
       not_your_turn: "It's not your turn yet",
+      network_error: "Can't reach the server — check your connection, or that you opened the right link",
+      internal_error: 'Server error, please try again',
       generic: 'Something went wrong, please try again',
     },
   },

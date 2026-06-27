@@ -126,6 +126,8 @@ const zh = {
       playAgain: '再来一局',
     },
     errors: {
+      nameRequired: '请先输入昵称',
+      codeRequired: '请输入房间号',
       not_host: '只有房主可以操作',
       room_not_found: '房间不存在，请检查房间号',
       name_taken: '昵称已被占用，换一个吧',
@@ -133,6 +135,8 @@ const zh = {
       already_started: '游戏已经开始了',
       invalid_config: '游戏设置无效，请调整后重试',
       not_your_turn: '还没轮到你',
+      network_error: '连不上服务器，请检查网络，或确认打开的是正确的链接',
+      internal_error: '服务器开小差了，请重试',
       generic: '出错了，请重试',
     },
   },
