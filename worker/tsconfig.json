@@ -2,7 +2,7 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022"],
-    "types": ["node"],
+    "types": ["@cloudflare/workers-types"],
     "baseUrl": ".",
     "paths": {
       "@spy/shared": ["../shared/src/index.ts"]

@@ -5,12 +5,26 @@ import type {
   SecretAssignment,
 } from './types';
 
-// ---- Client -> Server payloads ----
+// ============================================================================
+// Transport contract for the Cloudflare Worker + Durable Object backend.
+//
+// Two channels:
+//  1. HTTP POST for create/join — request/response "acks" (need a synchronous
+//     ok/error + room code before a socket exists).
+//  2. A single persistent WebSocket per client (opened to WS_PATH?code=CODE
+//     after a successful create/join) carrying all live game traffic.
+//
+// Secrecy invariant (unchanged): role/word NEVER ride in a `state` message;
+// they go only in a `secret` message, only to the owning socket.
+// ============================================================================
+
+// ---- HTTP create/join ----
 
 export interface CreateRoomPayload {
   /** Persistent player id generated + stored on the client (survives reconnects). */
   playerId: string;
   name: string;
+  /** Seeds the word-bank language + the creator's default UI language. */
   lang: Lang;
 }
 
@@ -23,52 +37,35 @@ export interface JoinRoomPayload {
 export interface AckResult {
   ok: boolean;
   code?: string;
-  /** Machine-readable error key for i18n on the client (e.g. 'room_not_found'). */
+  /** Machine-readable error key for client i18n (e.g. 'room_not_found'). */
   error?: string;
 }
 
-export interface ConfigPayload {
-  config: Partial<GameConfig>;
-}
+// ---- WebSocket message protocol ----
 
-export interface VotePayload {
-  /** Player id being voted for. */
-  targetId: string;
-}
+/** Messages the client sends over the WebSocket. Discriminated on `t`. */
+export type ClientMsg =
+  | { t: 'hello'; playerId: string } // sent on (re)connect to bind this socket to a seat
+  | { t: 'config'; config: Partial<GameConfig> } // host only, lobby only
+  | { t: 'start' } // host only
+  | { t: 'phaseNext' } // host only
+  | { t: 'vote'; targetId: string }
+  | { t: 'blankGuess'; guess: string }
+  | { t: 'restart' } // host only
+  | { t: 'leave' };
 
-export interface BlankGuessPayload {
-  guess: string;
-}
+/** Messages the server sends over the WebSocket. Discriminated on `t`. */
+export type ServerMsg =
+  | { t: 'id'; playerId: string } // echoes the seat id bound to this socket
+  | { t: 'state'; state: RoomState } // public snapshot — never contains role/word
+  | { t: 'secret'; secret: SecretAssignment | null } // private: this player's own word
+  | { t: 'error'; code: string; message?: string }; // `code` is an i18n key
 
-// ---- socket.io typed event maps (shared by server `Server<...>` and client `io<...>`) ----
+// ---- Routes / ports ----
 
-export interface ClientToServerEvents {
-  'room:create': (p: CreateRoomPayload, cb: (r: AckResult) => void) => void;
-  'room:join': (p: JoinRoomPayload, cb: (r: AckResult) => void) => void;
-  'room:leave': () => void;
-  /** Host only: update game configuration while in lobby. */
-  'game:config': (p: ConfigPayload) => void;
-  /** Host only: deal roles/words and start the round. */
-  'game:start': () => void;
-  /** Host only: advance the phase (reveal -> describe -> vote, or next speaker). */
-  'phase:next': () => void;
-  'game:vote': (p: VotePayload) => void;
-  /** The eliminated 白板 submits their one guess at the civilian word. */
-  'blank:guess': (p: BlankGuessPayload) => void;
-  /** Host only: reset back to lobby for another game with the same players. */
-  'game:restart': () => void;
-}
+export const API_CREATE = '/api/create';
+export const API_JOIN = '/api/join';
+export const WS_PATH = '/ws';
 
-export interface ServerToClientEvents {
-  /** Public room snapshot. Broadcast to everyone on every change. */
-  'room:state': (s: RoomState) => void;
-  /** Private. The receiving socket's own role + word (or null between rounds). */
-  'you:secret': (a: SecretAssignment | null) => void;
-  /** Echoes back the player id the server is using for this socket. */
-  'you:id': (id: string) => void;
-  /** Recoverable error; `code` is an i18n key. */
-  'error': (e: { code: string; message?: string }) => void;
-}
-
-export const SERVER_PORT = 3001;
-export const SOCKET_PATH = '/socket.io';
+/** Local `wrangler dev` port; Vite proxies /ws + /api here during `npm run dev`. */
+export const WORKER_DEV_PORT = 8787;

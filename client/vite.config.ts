@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
-import { SERVER_PORT } from '../shared/src/events';
+import { WORKER_DEV_PORT } from '../shared/src/events';
 
-// Dev: Vite serves the SPA on :5173 and proxies /socket.io to the Node server.
-// Prod: `npm run build` emits to client/dist, which the Node server serves.
+// Dev: Vite serves the SPA on :5173 (with HMR) and proxies the realtime + API
+// routes to the local Cloudflare Worker (`wrangler dev` on WORKER_DEV_PORT).
+// Prod: `npm run build` emits client/dist, which the Worker serves as static
+// assets (SPA fallback configured in wrangler.jsonc).
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -17,9 +19,13 @@ export default defineConfig({
     port: 5173,
     host: true, // expose on LAN so phones can reach the dev server
     proxy: {
-      '/socket.io': {
-        target: `http://localhost:${SERVER_PORT}`,
+      '/ws': {
+        target: `http://localhost:${WORKER_DEV_PORT}`,
         ws: true,
+        changeOrigin: true,
+      },
+      '/api': {
+        target: `http://localhost:${WORKER_DEV_PORT}`,
         changeOrigin: true,
       },
     },

@@ -1,0 +1,20 @@
+{
+  "name": "@spy/worker",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "cf-types": "wrangler types"
+  },
+  "dependencies": {
+    "@spy/shared": "*",
+    "nanoid": "^5.0.9"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "typescript": "^5.6.3",
+    "wrangler": "^3"
+  }
+}

@@ -1,13 +1,19 @@
 import type { GameConfig, Role, SecretAssignment } from '@spy/shared';
 import { MAX_PLAYERS, MIN_PLAYERS } from '@spy/shared';
 import { pickPair } from './words.js';
-import type { PlayerRecord, ServerRoom } from './roomManager.js';
+import type { PlayerRecord, ServerRoom } from './room.js';
 
 /**
  * Pure-ish game logic + phase machine. Functions here mutate the
  * authoritative {@link ServerRoom} and report *what* secret each player should
- * be told; actually emitting `you:secret` / `room:state` is the socket layer's
- * job, keeping all socket.io I/O out of this module.
+ * be told; actually emitting `secret` / `state` messages is the Durable
+ * Object's job, keeping all transport I/O out of this module.
+ *
+ * Adapted from the Node/socket.io server: the dealt word pair now lives on
+ * `room.secretPair` (set in {@link startGame}, read in {@link blankGuess} /
+ * `endGame`, cleared in {@link restartGame}) instead of a module-level Map,
+ * because a Durable Object is a single room and module state does not survive
+ * hibernation.
  */
 
 /** A stable error key (i18n key on the client) plus an optional message. */
@@ -142,27 +148,18 @@ export function startGame(room: ServerRoom): SecretEmit[] {
   room.round = 1;
   room.speakingOrder = [];
   room.currentSpeaker = 0;
-  // Keep the dealt pair around for the final reveal.
-  dealtPair.set(room.code, { civilian: pair.civilian, undercover: pair.undercover });
+  // Keep the dealt pair around (on the room, so it survives hibernation) for
+  // the final reveal / the blank's guess.
+  room.secretPair = { civilian: pair.civilian, undercover: pair.undercover };
 
   room.phase = 'reveal';
   return emits;
 }
 
-/**
- * The actual word pair dealt for the current game, keyed by room code, kept
- * outside RoomState so it can never leak into a broadcast before 'ended'.
- */
-const dealtPair = new Map<string, { civilian: string; undercover: string }>();
-
 // --------------------------- phase machine ---------------------------
 
 /**
- * Host-driven `phase:next`. Advances the finite-state machine. Returns the
- * set of secret re-emits the caller should dispatch (non-empty only when a new
- * round begins and players are re-dealt their existing identity — actually we
- * keep identities across rounds, so this is only used to re-send on phase
- * changes that warrant it; normally empty).
+ * Host-driven `phaseNext`. Advances the finite-state machine.
  */
 export function advancePhase(room: ServerRoom): void {
   switch (room.phase) {
@@ -322,8 +319,7 @@ export function blankGuess(
     throw new GameError('not_your_turn');
   }
 
-  const pair = dealtPair.get(room.code);
-  const target = (pair?.civilian ?? '').trim().toLowerCase();
+  const target = (room.secretPair?.civilian ?? '').trim().toLowerCase();
   const got = guess.trim().toLowerCase();
 
   if (target && got === target) {
@@ -379,9 +375,8 @@ function startNextRound(room: ServerRoom): void {
 function endGame(room: ServerRoom, winner: 'civilians' | 'undercover'): void {
   room.phase = 'ended';
   room.winner = winner;
-  const pair = dealtPair.get(room.code);
-  room.revealWords = pair
-    ? { civilian: pair.civilian, undercover: pair.undercover }
+  room.revealWords = room.secretPair
+    ? { civilian: room.secretPair.civilian, undercover: room.secretPair.undercover }
     : null;
 }
 
@@ -402,7 +397,7 @@ export function restartGame(room: ServerRoom): SecretEmit[] {
   room.winner = null;
   room.revealWords = null;
   room.votes.clear();
-  dealtPair.delete(room.code);
+  room.secretPair = null;
 
   const emits: SecretEmit[] = [];
   for (const p of room.players.values()) {
@@ -416,12 +411,7 @@ export function restartGame(room: ServerRoom): SecretEmit[] {
   return emits;
 }
 
-/** Forget a room's dealt pair (call when a room is garbage-collected). */
-export function forgetRoom(code: string): void {
-  dealtPair.delete(code);
-}
-
-/** The current secret for a player, used to re-send `you:secret` on reconnect. */
+/** The current secret for a player, used to re-send a `secret` on reconnect. */
 export function secretFor(player: PlayerRecord): SecretAssignment | null {
   if (player.role === null) return null;
   return { role: player.role, word: player.word };
