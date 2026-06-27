@@ -70,6 +70,18 @@
     font-family: inherit;
   }
 
+  /* Native dropdowns: match the dark theme. The closed control is styled via
+     .field; these force a dark color-scheme + dark option list so the popup
+     isn't light in any browser. */
+  select {
+    color-scheme: dark;
+  }
+  option,
+  optgroup {
+    background-color: #1b1b1f; /* noir-800 */
+    color: #ece8df; /* paper */
+  }
+
   ::selection {
     background: #f5a623;
     color: #0a0a0b;
