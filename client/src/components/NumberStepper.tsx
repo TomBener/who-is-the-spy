@@ -23,12 +23,13 @@ export default function NumberStepper({
   const inc = () => !disabled && onChange(clamp(value + 1));
 
   const btn =
-    'no-select grid h-11 w-11 place-items-center rounded-xl bg-ink-700 text-xl font-bold text-white ' +
-    'ring-1 ring-white/10 transition active:scale-90 disabled:opacity-30 disabled:active:scale-100';
+    'no-select grid h-10 w-10 place-items-center border border-noir-600 bg-noir-950 text-xl font-bold ' +
+    'text-paper transition active:translate-y-px hover:border-amber hover:text-amber ' +
+    'disabled:opacity-30 disabled:pointer-events-none';
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-sm text-slate-200">{label}</span>
+      <span className="label text-paper-dim">{label}</span>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -41,8 +42,8 @@ export default function NumberStepper({
         </button>
         <span
           className={clsx(
-            'w-8 text-center text-lg font-bold tabular-nums',
-            value > 0 ? 'text-brand-200' : 'text-slate-400',
+            'w-8 text-center font-mono text-lg font-bold tabular-nums',
+            value > 0 ? 'text-amber' : 'text-paper-faint',
           )}
         >
           {value}

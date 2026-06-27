@@ -52,15 +52,18 @@ export default function VoteScreen({ roomState, secret, isHost, selfId }: Props)
 
   return (
     <Screen>
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">{t('vote.title')}</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          {amAlive ? t('vote.instruction') : t('vote.cantVote')}
-        </p>
+      <div className="flex items-center justify-between">
+        <span className="label">// {t('vote.title')}</span>
+        <span className="label tabular-nums text-paper-faint">
+          {votedCount}/{aliveCount}
+        </span>
       </div>
+      <p className="label normal-case text-paper-dim">
+        {amAlive ? t('vote.instruction') : t('vote.cantVote')}
+      </p>
 
-      {/* Candidate grid */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Suspect lineup */}
+      <div className="grid grid-cols-2 gap-2.5">
         {candidates.map((p) => {
           const isPicked = picked === p.id;
           return (
@@ -70,22 +73,25 @@ export default function VoteScreen({ roomState, secret, isHost, selfId }: Props)
               disabled={locked || !amAlive}
               onClick={() => castVote(p.id)}
               className={clsx(
-                'no-select flex flex-col items-center gap-2 rounded-3xl p-4 ring-1 transition active:scale-[0.97] animate-pop-in',
-                isPicked
-                  ? 'bg-brand-500 ring-white/30 shadow-lg shadow-brand-900/40'
-                  : 'bg-ink-800/80 ring-white/10',
-                (locked || !amAlive) && !isPicked && 'opacity-50',
+                'no-select panel flex flex-col items-center gap-2 rounded-sm p-4 transition active:translate-y-px',
+                isPicked && 'border-amber bg-noir-800',
+                (locked || !amAlive) && !isPicked && 'opacity-45',
               )}
             >
               <span
                 className={clsx(
-                  'grid h-14 w-14 place-items-center rounded-full text-xl font-bold',
-                  isPicked ? 'bg-white/20 text-white' : 'bg-ink-700 text-brand-200',
+                  'grid h-12 w-12 place-items-center border font-mono text-xl font-bold',
+                  isPicked ? 'border-amber text-amber' : 'border-noir-600 text-paper',
                 )}
               >
                 {initial(p.name)}
               </span>
-              <span className="w-full truncate text-center text-sm font-semibold text-white">
+              <span
+                className={clsx(
+                  'w-full truncate text-center text-sm',
+                  isPicked ? 'font-bold text-amber' : 'text-paper',
+                )}
+              >
                 {p.name}
               </span>
             </button>
@@ -96,21 +102,21 @@ export default function VoteScreen({ roomState, secret, isHost, selfId }: Props)
       {/* Status */}
       <Card className="text-center">
         {locked && amAlive ? (
-          <p className="font-semibold text-brand-200">
+          <p className="label text-amber">
             {pickedName
               ? t('vote.youVoted', { name: pickedName })
               : t('vote.locked')}
           </p>
         ) : !amAlive ? (
-          <p className="text-sm text-slate-400">{t('vote.cantVote')}</p>
+          <p className="text-sm text-paper-dim">{t('vote.cantVote')}</p>
         ) : (
-          <p className="text-sm text-slate-400">{t('vote.tapToVote')}</p>
+          <p className="text-sm text-paper-dim">{t('vote.tapToVote')}</p>
         )}
-        <p className="mt-2 text-xs text-slate-500 tabular-nums">
+        <p className="label mt-2 normal-case tabular-nums text-paper-faint">
           {t('vote.progress', { voted: votedCount, total: aliveCount })}
         </p>
         {locked && amAlive && (
-          <p className="mt-1 text-xs text-slate-500">{t('vote.waiting')}</p>
+          <p className="label mt-1 normal-case text-paper-faint">{t('vote.waiting')}</p>
         )}
       </Card>
 

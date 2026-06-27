@@ -3,6 +3,7 @@ import type { RoomState, Role } from '@spy/shared';
 import Screen from '@/components/Screen';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
+import Stamp from '@/components/Stamp';
 import PlayerList from '@/components/PlayerList';
 import { socket } from '@/lib/socket';
 
@@ -12,10 +13,11 @@ interface Props {
   selfId: string;
 }
 
-const roleEmoji: Record<Role, string> = {
-  civilian: '🧑',
-  undercover: '🕵️',
-  blank: '🎭',
+// Civilian reads "cleared" (paper); undercover / Mr.White are the catch (alert).
+const roleTone: Record<Role, 'paper' | 'alert'> = {
+  civilian: 'paper',
+  undercover: 'alert',
+  blank: 'alert',
 };
 
 export default function VoteResultScreen({ roomState, isHost, selfId }: Props) {
@@ -25,40 +27,39 @@ export default function VoteResultScreen({ roomState, isHost, selfId }: Props) {
   return (
     <Screen center>
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">{t('voteResult.title')}</h2>
+        <span className="label">// {t('voteResult.title')}</span>
       </div>
 
       {eliminated ? (
-        <Card className="flex flex-col items-center gap-3 text-center animate-pop-in">
-          <span className="text-5xl">{roleEmoji[eliminated.role]}</span>
-          <p className="text-xl font-extrabold text-white">
+        <Card className="flex flex-col items-center gap-4 text-center">
+          <Stamp color={roleTone[eliminated.role]} className="animate-stamp-in">
+            {t(`roles.${eliminated.role}`)}
+          </Stamp>
+          <p className="text-xl font-extrabold text-paper">
             {t('voteResult.eliminated', { name: eliminated.name })}
           </p>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-xs uppercase tracking-widest text-slate-400">
-              {t('voteResult.wasRole')}
-            </span>
-            <span className="rounded-full bg-brand-500/20 px-3 py-1 text-sm font-bold text-brand-200">
-              {t(`roles.${eliminated.role}`)}
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="label text-paper-faint">{t('voteResult.wasRole')}</span>
+            <span className="font-mono text-base font-bold text-amber">
+              {eliminated.word
+                ? eliminated.word
+                : t('voteResult.noWord')}
             </span>
           </div>
-          <p className="text-sm text-slate-300">
-            {eliminated.word
-              ? t('voteResult.theirWord', { word: eliminated.word })
-              : t('voteResult.noWord')}
-          </p>
         </Card>
       ) : (
         // Tie: server reports no elimination this round.
-        <Card className="flex flex-col items-center gap-2 text-center animate-pop-in">
-          <span className="text-5xl">🤝</span>
-          <p className="text-xl font-bold text-white">{t('voteResult.tie')}</p>
-          <p className="text-sm text-slate-400">{t('voteResult.tieBody')}</p>
+        <Card className="flex flex-col items-center gap-3 text-center">
+          <Stamp color="paper" className="animate-stamp-in">
+            {t('voteResult.tie')}
+          </Stamp>
+          <p className="text-sm text-paper-dim">{t('voteResult.tieBody')}</p>
         </Card>
       )}
 
       {/* Vote tally */}
       <Card>
+        <h3 className="label mb-3 text-paper">{t('voteResult.title')}</h3>
         <PlayerList players={players} selfId={selfId} showVotesReceived />
       </Card>
 

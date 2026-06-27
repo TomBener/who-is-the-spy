@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import type { SecretAssignment } from '@spy/shared';
 import Screen from '@/components/Screen';
 import Button from '@/components/Button';
+import Stamp from '@/components/Stamp';
 import { socket } from '@/lib/socket';
 
 interface Props {
@@ -15,68 +16,72 @@ export default function RevealScreen({ secret, isHost }: Props) {
   const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
 
-  // 白板 / Mr.White has no word — show a distinct card (still no civilian/undercover tell).
+  // 白板 / Mr.White has no word — shown only AFTER declassifying (no pre-tell).
   const isBlank = secret?.role === 'blank';
 
   return (
     <Screen center>
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">{t('reveal.title')}</h2>
-        <p className="mt-1 text-sm text-slate-400">{t('reveal.holdHint')}</p>
+        <span className="label">// {t('reveal.title')}</span>
+        <p className="mt-2 text-sm text-paper-dim">{t('reveal.holdHint')}</p>
       </div>
 
-      {/* Tap-to-reveal card. Civilians and undercover are intentionally identical. */}
+      {/* Dossier ID card. Tap to declassify — the redacted bar wipes away.
+          Civilian vs undercover are intentionally identical. */}
       <button
         type="button"
         onClick={() => setRevealed((v) => !v)}
-        className={clsx(
-          'no-select relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-3 rounded-3xl p-6 text-center ring-1 transition active:scale-[0.98] animate-pop-in',
-          revealed
-            ? isBlank
-              ? 'bg-gradient-to-br from-fuchsia-600 to-brand-700 ring-white/20'
-              : 'bg-gradient-to-br from-brand-500 to-brand-700 ring-white/20'
-            : 'bg-ink-800/80 ring-white/10',
-        )}
+        className="no-select panel relative block w-full overflow-hidden rounded-sm text-left shadow-panel active:translate-y-px"
       >
-        {!revealed ? (
-          <>
-            <span className="text-5xl">🃏</span>
-            <span className="text-lg font-semibold text-slate-200">
-              {t('reveal.tapToReveal')}
-            </span>
-          </>
-        ) : isBlank ? (
-          <>
-            <span className="text-5xl">🎭</span>
-            <span className="text-2xl font-extrabold text-white">
-              {t('reveal.blankTitle')}
-            </span>
-            <span className="px-2 text-sm leading-relaxed text-white/90">
-              {t('reveal.blankBody')}
-            </span>
-          </>
-        ) : (
-          <>
-            <span className="text-xs uppercase tracking-widest text-white/70">
-              {t('reveal.yourWord')}
-            </span>
-            <span className="break-all text-4xl font-extrabold text-white">
-              {secret?.word}
-            </span>
-          </>
-        )}
+        {/* file header strip */}
+        <div className="flex items-center justify-between border-b border-noir-700 px-4 py-2.5">
+          <span className="label">SUBJECT FILE</span>
+          <span className={clsx('label', isBlank && revealed ? 'text-alert' : 'text-amber')}>
+            {isBlank && revealed ? 'NO RECORD' : '机密 · CLASSIFIED'}
+          </span>
+        </div>
+
+        {/* word zone */}
+        <div className="relative grid min-h-[240px] place-items-center px-6 py-10 text-center">
+          {/* underneath: the word, or the 白板 notice */}
+          {isBlank ? (
+            <div className="animate-fade-in">
+              <Stamp color="alert" className="animate-stamp-in">
+                {t('reveal.blankTitle')}
+              </Stamp>
+              <p className="mx-auto mt-4 max-w-[16rem] text-sm leading-relaxed text-paper-dim">
+                {t('reveal.blankBody')}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <span className="label">{t('reveal.yourWord')}</span>
+              <div className="mt-3 break-all font-mono text-4xl font-bold tracking-wide text-amber">
+                {secret?.word}
+              </div>
+            </div>
+          )}
+
+          {/* redacted bar on top — wipes left when declassified */}
+          <div
+            className={clsx(
+              'redacted absolute inset-0 grid origin-left place-items-center transition-transform duration-500 ease-[cubic-bezier(0.7,0,0.3,1)]',
+              revealed && 'scale-x-0',
+            )}
+          >
+            <span className="label text-paper-dim">{t('reveal.tapToReveal')}</span>
+          </div>
+        </div>
       </button>
 
       {revealed && (
-        <p className="text-center text-xs text-slate-400 animate-fade-in">
-          {t('reveal.hideAgain')} ←→ {t('reveal.seen')}
+        <p className="label animate-fade-in text-center normal-case text-paper-faint">
+          {t('reveal.hideAgain')} · {t('reveal.seen')}
         </p>
       )}
 
       {isHost && (
-        <Button onClick={() => socket.emit('phase:next')}>
-          {t('reveal.hostStart')}
-        </Button>
+        <Button onClick={() => socket.emit('phase:next')}>{t('reveal.hostStart')}</Button>
       )}
     </Screen>
   );

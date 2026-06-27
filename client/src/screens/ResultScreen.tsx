@@ -4,6 +4,7 @@ import type { RoomState } from '@spy/shared';
 import Screen from '@/components/Screen';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
+import Stamp from '@/components/Stamp';
 import { socket } from '@/lib/socket';
 
 interface Props {
@@ -21,19 +22,19 @@ export default function ResultScreen({ roomState, isHost }: Props) {
 
   return (
     <Screen center>
-      <Card
-        className={clsx(
-          'flex flex-col items-center gap-3 text-center animate-pop-in',
-          civiliansWin
-            ? 'bg-gradient-to-br from-emerald-600 to-teal-700'
-            : 'bg-gradient-to-br from-rose-600 to-brand-700',
-        )}
-      >
-        <span className="text-6xl">{civiliansWin ? '🎉' : '🕵️'}</span>
-        <h2 className="text-3xl font-extrabold text-white">
+      <Card className="flex flex-col items-center gap-4 text-center">
+        <Stamp color={civiliansWin ? 'amber' : 'alert'} className="animate-stamp-in text-base">
+          结案 · CASE CLOSED
+        </Stamp>
+        <h2
+          className={clsx(
+            'text-3xl font-extrabold tracking-[0.06em]',
+            civiliansWin ? 'text-paper' : 'text-alert',
+          )}
+        >
           {civiliansWin ? t('result.civiliansWin') : t('result.undercoverWin')}
         </h2>
-        <p className="text-sm text-white/90">
+        <p className="text-sm text-paper-dim">
           {civiliansWin
             ? t('result.civiliansWinBody')
             : blankComeback
@@ -44,23 +45,17 @@ export default function ResultScreen({ roomState, isHost }: Props) {
 
       {revealWords && (
         <Card>
-          <h3 className="mb-3 text-center text-sm font-semibold text-slate-200">
-            {t('result.words')}
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-emerald-500/15 p-3 text-center ring-1 ring-emerald-400/30">
-              <p className="text-xs uppercase tracking-widest text-emerald-300/90">
-                {t('result.civilianWord')}
-              </p>
-              <p className="mt-1 break-all text-lg font-bold text-white">
+          <h3 className="label mb-3 text-center text-paper">{t('result.words')}</h3>
+          <div className="grid grid-cols-2 gap-px bg-noir-700">
+            <div className="bg-noir-850 p-4 text-center">
+              <p className="label text-paper-faint">{t('result.civilianWord')}</p>
+              <p className="mt-2 break-all font-mono text-lg font-bold text-paper">
                 {revealWords.civilian}
               </p>
             </div>
-            <div className="rounded-2xl bg-rose-500/15 p-3 text-center ring-1 ring-rose-400/30">
-              <p className="text-xs uppercase tracking-widest text-rose-300/90">
-                {t('result.undercoverWord')}
-              </p>
-              <p className="mt-1 break-all text-lg font-bold text-white">
+            <div className="bg-noir-850 p-4 text-center">
+              <p className="label text-alert/80">{t('result.undercoverWord')}</p>
+              <p className="mt-2 break-all font-mono text-lg font-bold text-alert">
                 {revealWords.undercover}
               </p>
             </div>

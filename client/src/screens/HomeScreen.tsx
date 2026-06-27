@@ -9,9 +9,6 @@ import { createRoom, joinRoom } from '@/lib/socket';
 import { useStore } from '@/store';
 
 const NAME_KEY = 'spy:lastName';
-const inputClass =
-  'w-full rounded-2xl bg-ink-900/60 px-4 py-3 text-base text-white placeholder:text-slate-500 ' +
-  'ring-1 ring-white/10 outline-none transition focus:ring-2 focus:ring-brand-400';
 
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
@@ -56,7 +53,6 @@ export default function HomeScreen() {
     const res = await createRoom({ playerId, name: trimmed, lang });
     setBusy(null);
     if (!res.ok && res.error) setError(res.error);
-    // On success the server emits room:state, which flips the screen.
   };
 
   const handleJoin = async () => {
@@ -79,23 +75,37 @@ export default function HomeScreen() {
 
   return (
     <Screen center>
-      <div className="text-center animate-fade-in">
-        <div className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-3xl bg-brand-500 text-4xl shadow-xl shadow-brand-900/50">
-          🕵️
+      {/* Dossier masthead */}
+      <div className="animate-fade-in">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="label">// DOSSIER</span>
+          <span className="label text-paper-faint">№ ████–██</span>
         </div>
-        <h2 className="text-3xl font-extrabold tracking-tight text-white">
-          {t('app.title')}
-        </h2>
-        <p className="mt-2 text-sm text-slate-400">{t('app.tagline')}</p>
+        <div className="border-y border-noir-700 py-5 text-center">
+          <span className="mb-3 inline-flex animate-flicker text-amber">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-11 w-11"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              aria-hidden
+            >
+              <circle cx="12" cy="12" r="8" />
+              <path d="M12 1v5M12 18v5M1 12h5M18 12h5" />
+              <circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none" />
+            </svg>
+          </span>
+          <h2 className="text-3xl font-extrabold tracking-[0.08em] text-paper">{t('app.title')}</h2>
+          <p className="label mt-2 normal-case tracking-[0.15em]">{t('app.tagline')}</p>
+        </div>
       </div>
 
-      {/* Shared name input */}
+      {/* Codename */}
       <Card>
-        <label className="mb-1.5 block text-xs font-medium text-slate-400">
-          {t('home.namePlaceholder')}
-        </label>
+        <label className="label mb-2 block">{t('home.namePlaceholder')}</label>
         <input
-          className={inputClass}
+          className="field"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t('home.namePlaceholder')}
@@ -105,29 +115,25 @@ export default function HomeScreen() {
         />
       </Card>
 
-      {/* Create */}
+      {/* Open a new case */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">
-          {t('home.createTitle')}
-        </h3>
+        <h3 className="label mb-3 text-paper">{t('home.createTitle')}</h3>
         <Button onClick={handleCreate} disabled={busy !== null}>
           {busy === 'create' ? t('common.loading') : t('home.createButton')}
         </Button>
       </Card>
 
-      <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-slate-500">
-        <span className="h-px flex-1 bg-white/10" />
-        {t('home.orDivider')}
-        <span className="h-px flex-1 bg-white/10" />
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-noir-700" />
+        <span className="label">{t('home.orDivider')}</span>
+        <span className="h-px flex-1 bg-noir-700" />
       </div>
 
-      {/* Join */}
+      {/* Join by case № */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">
-          {t('home.joinTitle')}
-        </h3>
+        <h3 className="label mb-3 text-paper">{t('home.joinTitle')}</h3>
         <input
-          className={`${inputClass} mb-3 text-center font-mono text-2xl font-bold tracking-[0.4em] uppercase`}
+          className="field mb-3 text-center text-2xl font-bold uppercase tracking-[0.4em] text-amber"
           value={code}
           onChange={(e) =>
             setCode(
@@ -151,7 +157,7 @@ export default function HomeScreen() {
         </Button>
       </Card>
 
-      <p className="px-4 text-center text-xs leading-relaxed text-slate-500">
+      <p className="label px-2 text-center normal-case leading-relaxed text-paper-faint">
         {t('home.hint')}
       </p>
     </Screen>

@@ -36,12 +36,13 @@ export default function Toast() {
     >
       <div
         className={clsx(
-          'pointer-events-auto w-full max-w-md rounded-2xl bg-rose-600 px-4 py-3 text-center text-sm font-medium text-white shadow-xl shadow-black/40 transition-all duration-200',
+          'pointer-events-auto flex w-full max-w-md items-center gap-3 border border-alert bg-noir-900 px-4 py-3 text-sm text-paper transition-all duration-200',
           shown ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0',
         )}
         onClick={() => setShown(false)}
       >
-        {message}
+        <span className="font-mono font-bold text-alert">//</span>
+        <span className="flex-1">{message}</span>
       </div>
     </div>
   );

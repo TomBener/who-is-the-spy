@@ -16,7 +16,7 @@ export default function LangToggle() {
     <div
       role="group"
       aria-label="Language"
-      className="no-select flex items-center rounded-full bg-ink-700/80 p-0.5 ring-1 ring-white/10"
+      className="no-select flex items-center border border-noir-700"
     >
       {OPTIONS.map((opt) => {
         const active = current === opt.value;
@@ -27,10 +27,11 @@ export default function LangToggle() {
             aria-pressed={active}
             onClick={() => void i18n.changeLanguage(opt.value)}
             className={clsx(
-              'min-w-[34px] rounded-full px-2.5 py-1 text-xs font-semibold transition',
+              'min-w-[34px] px-2.5 py-1 font-mono text-xs font-bold uppercase tracking-[0.12em] transition',
               active
-                ? 'bg-brand-500 text-white shadow'
-                : 'text-slate-300 hover:text-white',
+                ? 'border-amber bg-noir-900 text-amber'
+                : 'border-transparent text-paper-dim hover:text-paper',
+              'border',
             )}
           >
             {opt.label}

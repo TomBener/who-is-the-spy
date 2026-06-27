@@ -48,30 +48,42 @@ export default function LobbyScreen({ roomState, isHost, selfId }: Props) {
     }
   };
 
+  const fieldSelect =
+    'field cursor-pointer appearance-none pr-9 text-sm';
+
   return (
     <Screen>
-      {/* Room code + QR */}
+      {/* Masthead */}
+      <div className="flex items-center justify-between">
+        <span className="label">// BRIEFING</span>
+        <span className="label text-paper-faint">{t('lobby.title')}</span>
+      </div>
+
+      {/* Case № + clearance pass */}
       <Card className="flex flex-col items-center gap-4 text-center">
         <div>
-          <p className="text-xs uppercase tracking-widest text-slate-400">
-            {t('common.roomCode')}
-          </p>
-          <p className="mt-1 font-mono text-5xl font-extrabold tracking-[0.3em] text-brand-200">
-            {roomState.code}
-          </p>
+          <span className="label text-paper-faint">№ · {t('common.roomCode')}</span>
+          <p className="code mt-1.5 text-5xl font-extrabold">{roomState.code}</p>
         </div>
-        <div className="rounded-3xl bg-white p-3 shadow-lg">
-          <QRCode value={joinUrl} size={184} />
-        </div>
-        <p className="text-xs text-slate-400">{t('lobby.scanToJoin')}</p>
+        <QRCode value={joinUrl} size={172} />
+        <p className="label normal-case text-paper-dim">{t('lobby.scanToJoin')}</p>
         <Button variant="secondary" size="md" onClick={handleCopy}>
-          {copied ? `✓ ${t('common.copied')}` : t('lobby.copyLink')}
+          {copied ? (
+            <span className="inline-flex items-center gap-2">
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+                <path d="M3 8.5l3.2 3.2L13 4.5" />
+              </svg>
+              {t('common.copied')}
+            </span>
+          ) : (
+            t('lobby.copyLink')
+          )}
         </Button>
       </Card>
 
-      {/* Players */}
+      {/* Roster */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">
+        <h3 className="label mb-3 text-paper">
           {t('lobby.playersCount', { count: playerCount })}
         </h3>
         <PlayerList players={roomState.players} selfId={selfId} />
@@ -81,9 +93,7 @@ export default function LobbyScreen({ roomState, isHost, selfId }: Props) {
       {isHost ? (
         <>
           <Card>
-            <h3 className="mb-4 text-sm font-semibold text-slate-200">
-              {t('lobby.configTitle')}
-            </h3>
+            <h3 className="label mb-4 text-paper">// PARAMETERS</h3>
             <div className="flex flex-col gap-4">
               <NumberStepper
                 label={t('lobby.undercover')}
@@ -100,38 +110,54 @@ export default function LobbyScreen({ roomState, isHost, selfId }: Props) {
                 onChange={(v) => patchConfig({ blankCount: v })}
               />
 
+              <span className="h-px bg-noir-700" />
+
               {/* Category */}
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-slate-200">{t('lobby.category')}</span>
-                <select
-                  className="rounded-xl bg-ink-700 px-3 py-2 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-2 focus:ring-brand-400"
-                  value={config.category}
-                  onChange={(e) => patchConfig({ category: e.target.value })}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.key} value={c.key}>
-                      {c.label[lang]}
-                    </option>
-                  ))}
-                </select>
+                <span className="label text-paper-dim">{t('lobby.category')}</span>
+                <div className="relative">
+                  <select
+                    className={fieldSelect}
+                    value={config.category}
+                    onChange={(e) => patchConfig({ category: e.target.value })}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.key} value={c.key}>
+                        {c.label[lang]}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-amber">
+                    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                      <path d="M4 6l4 4 4-4" />
+                    </svg>
+                  </span>
+                </div>
               </div>
 
               {/* Timer */}
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-slate-200">{t('lobby.timer')}</span>
-                <select
-                  className="rounded-xl bg-ink-700 px-3 py-2 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-2 focus:ring-brand-400"
-                  value={config.descriptionTimer}
-                  onChange={(e) =>
-                    patchConfig({ descriptionTimer: Number(e.target.value) })
-                  }
-                >
-                  {TIMER_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s === 0 ? t('lobby.timerOff') : t('lobby.timerSeconds', { count: s })}
-                    </option>
-                  ))}
-                </select>
+                <span className="label text-paper-dim">{t('lobby.timer')}</span>
+                <div className="relative">
+                  <select
+                    className={fieldSelect}
+                    value={config.descriptionTimer}
+                    onChange={(e) =>
+                      patchConfig({ descriptionTimer: Number(e.target.value) })
+                    }
+                  >
+                    {TIMER_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s === 0 ? t('lobby.timerOff') : t('lobby.timerSeconds', { count: s })}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-amber">
+                    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                      <path d="M4 6l4 4 4-4" />
+                    </svg>
+                  </span>
+                </div>
               </div>
             </div>
           </Card>
@@ -141,12 +167,12 @@ export default function LobbyScreen({ roomState, isHost, selfId }: Props) {
               {t('lobby.start')}
             </Button>
             {playerCount < MIN_PLAYERS && (
-              <p className="text-center text-xs text-amber-300/90">
+              <p className="label text-center normal-case text-amber">
                 {t('lobby.needMore', { min: MIN_PLAYERS, remaining })}
               </p>
             )}
             {playerCount >= MIN_PLAYERS && specialUsed >= playerCount && (
-              <p className="text-center text-xs text-amber-300/90">
+              <p className="label text-center normal-case text-amber">
                 {t('lobby.tooManySpecial')}
               </p>
             )}
@@ -154,10 +180,9 @@ export default function LobbyScreen({ roomState, isHost, selfId }: Props) {
         </>
       ) : (
         <Card className="text-center">
-          <p className="text-base font-semibold text-slate-100">
-            {t('lobby.waitingHost')}
-          </p>
-          <p className="mt-1 text-sm text-slate-400">{t('lobby.waitingHostHint')}</p>
+          <span className="label text-amber">待命 · STANDBY</span>
+          <p className="mt-2 text-paper">{t('lobby.waitingHost')}</p>
+          <p className="mt-1 text-sm text-paper-dim">{t('lobby.waitingHostHint')}</p>
         </Card>
       )}
     </Screen>

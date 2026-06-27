@@ -38,35 +38,33 @@ export default function DescribeScreen({ roomState, secret, isHost, selfId }: Pr
 
   return (
     <Screen>
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">{t('describe.title')}</h2>
+      <div className="flex items-center justify-between">
+        <span className="label">// {t('describe.title')}</span>
       </div>
 
-      {/* Now speaking spotlight */}
+      {/* Now speaking */}
       <Card
         className={clsx(
-          'flex flex-col items-center gap-2 text-center animate-pop-in',
-          isMyTurn && 'ring-2 ring-brand-400',
+          'flex flex-col items-center gap-2 text-center',
+          isMyTurn && 'border-amber',
         )}
       >
-        <span className="text-xs uppercase tracking-widest text-slate-400">
-          {t('describe.now')}
-        </span>
-        <span className="text-3xl font-extrabold text-brand-200">
+        <span className="label text-paper-faint">{t('describe.now')}</span>
+        <span className="font-mono text-3xl font-extrabold tracking-wide text-amber">
           {currentPlayer?.name ?? '—'}
         </span>
         {isMyTurn && (
-          <span className="rounded-full bg-brand-500/20 px-3 py-1 text-xs font-semibold text-brand-100">
+          <span className="label border border-amber/60 px-2 py-0.5 text-amber">
             {t('describe.youAreUp')}
           </span>
         )}
         {config.descriptionTimer > 0 && (
-          <div className="mt-1 w-full">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="mt-2 w-full">
+            <div className="h-1.5 w-full overflow-hidden border border-noir-700 bg-noir-950">
               <div
                 className={clsx(
-                  'h-full rounded-full transition-all duration-1000 ease-linear',
-                  remaining > 0 ? 'bg-brand-400' : 'bg-rose-500',
+                  'h-full transition-all duration-1000 ease-linear',
+                  remaining > 0 ? 'bg-amber' : 'bg-alert',
                 )}
                 style={{
                   width: `${(remaining / config.descriptionTimer) * 100}%`,
@@ -75,8 +73,8 @@ export default function DescribeScreen({ roomState, secret, isHost, selfId }: Pr
             </div>
             <p
               className={clsx(
-                'mt-1.5 text-xs tabular-nums',
-                remaining > 0 ? 'text-slate-400' : 'text-rose-300',
+                'label mt-1.5 normal-case tabular-nums',
+                remaining > 0 ? 'text-paper-dim' : 'text-alert',
               )}
             >
               {remaining > 0
@@ -87,12 +85,10 @@ export default function DescribeScreen({ roomState, secret, isHost, selfId }: Pr
         )}
       </Card>
 
-      {/* Speaking order */}
+      {/* Interrogation queue */}
       <Card>
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">
-          {t('describe.order')}
-        </h3>
-        <ol className="flex flex-col gap-1.5">
+        <h3 className="label mb-3 text-paper">{t('describe.order')}</h3>
+        <ol className="flex flex-col">
           {speakingOrder.map((id, idx) => {
             const p = byId.get(id);
             if (!p) return null;
@@ -102,31 +98,29 @@ export default function DescribeScreen({ roomState, secret, isHost, selfId }: Pr
               <li
                 key={id}
                 className={clsx(
-                  'flex items-center gap-3 rounded-xl px-3 py-2 transition',
-                  isCurrent && 'bg-brand-500/15 ring-1 ring-brand-400/50',
-                  isDone && 'opacity-50',
+                  'flex items-center gap-3 border-b border-noir-700 px-2 py-2 transition last:border-b-0',
+                  isCurrent && 'border-l-2 border-l-amber bg-noir-800',
+                  isDone && 'opacity-45',
                 )}
               >
                 <span
                   className={clsx(
-                    'grid h-6 w-6 place-items-center rounded-full text-xs font-bold tabular-nums',
-                    isCurrent
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-ink-700 text-slate-300',
+                    'label w-6 shrink-0 tabular-nums',
+                    isCurrent ? 'text-amber' : 'text-paper-faint',
                   )}
                 >
-                  {idx + 1}
+                  {String(idx + 1).padStart(2, '0')}
                 </span>
                 <span
                   className={clsx(
                     'flex-1 truncate text-sm',
-                    isCurrent ? 'font-semibold text-white' : 'text-slate-300',
+                    isCurrent ? 'font-bold text-amber' : 'text-paper-dim',
                   )}
                 >
                   {p.name}
                   {id === selfId && ` · ${t('common.you')}`}
                 </span>
-                <span className="text-[11px] text-slate-500">
+                <span className="label text-paper-faint">
                   {isDone
                     ? t('describe.done')
                     : isCurrent

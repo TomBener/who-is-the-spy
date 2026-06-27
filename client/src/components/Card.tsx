@@ -6,22 +6,10 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padded?: boolean;
 }
 
-/** A frosted dark surface card with subtle border + shadow. */
-export default function Card({
-  children,
-  className,
-  padded = true,
-  ...rest
-}: CardProps) {
+/** A solid document panel: hairline border, sharp corners — no gradient, no glass. */
+export default function Card({ children, className, padded = true, ...rest }: CardProps) {
   return (
-    <div
-      className={clsx(
-        'rounded-3xl bg-ink-800/80 ring-1 ring-white/10 shadow-xl shadow-black/30 backdrop-blur',
-        padded && 'p-5',
-        className,
-      )}
-      {...rest}
-    >
+    <div className={clsx('panel rounded-sm shadow-panel', padded && 'p-5', className)} {...rest}>
       {children}
     </div>
   );

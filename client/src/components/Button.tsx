@@ -11,25 +11,26 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
+// Sharp, official-looking action keys. Uppercase + tracking for the "stencil"
+// feel; depth via borders, not glow.
 const base =
-  'no-select inline-flex items-center justify-center gap-2 font-semibold rounded-2xl ' +
-  'transition active:scale-[0.97] focus:outline-none focus-visible:ring-2 ' +
-  'focus-visible:ring-brand-300/70 disabled:opacity-40 disabled:pointer-events-none ' +
-  'disabled:active:scale-100 select-none';
+  'no-select inline-flex items-center justify-center gap-2 rounded-sm font-bold uppercase ' +
+  'tracking-[0.12em] transition active:translate-y-px focus:outline-none focus-visible:ring-2 ' +
+  'focus-visible:ring-amber/60 disabled:opacity-35 disabled:pointer-events-none disabled:active:translate-y-0';
 
 const sizes: Record<Size, string> = {
-  md: 'min-h-[44px] px-4 text-sm',
-  lg: 'min-h-[52px] px-5 text-base',
+  md: 'min-h-[44px] px-4 text-[13px]',
+  lg: 'min-h-[52px] px-5 text-sm',
 };
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-brand-500 text-white shadow-lg shadow-brand-900/40 hover:bg-brand-400 active:bg-brand-600',
+    'bg-amber text-noir-950 border border-amber-600 hover:bg-amber-400 active:bg-amber-600',
   secondary:
-    'bg-ink-700 text-slate-100 ring-1 ring-white/10 hover:bg-ink-600 active:bg-ink-700',
-  ghost: 'bg-transparent text-slate-300 hover:bg-white/5 active:bg-white/10',
+    'bg-transparent text-paper border border-noir-600 hover:border-amber hover:text-amber active:bg-noir-800',
+  ghost: 'bg-transparent text-paper-dim hover:text-paper active:bg-noir-800',
   danger:
-    'bg-rose-600 text-white shadow-lg shadow-rose-900/40 hover:bg-rose-500 active:bg-rose-700',
+    'bg-alert text-white border border-alert-600 hover:bg-alert-400 active:bg-alert-600',
 };
 
 export default function Button({
@@ -44,13 +45,7 @@ export default function Button({
   return (
     <button
       type={type}
-      className={clsx(
-        base,
-        sizes[size],
-        variants[variant],
-        fullWidth && 'w-full',
-        className,
-      )}
+      className={clsx(base, sizes[size], variants[variant], fullWidth && 'w-full', className)}
       {...rest}
     >
       {children}

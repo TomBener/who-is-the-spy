@@ -4,6 +4,7 @@ import type { RoomState } from '@spy/shared';
 import Screen from '@/components/Screen';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
+import Stamp from '@/components/Stamp';
 import { socket } from '@/lib/socket';
 
 interface Props {
@@ -30,23 +31,21 @@ export default function BlankGuessScreen({ roomState, selfId }: Props) {
 
   return (
     <Screen center>
-      <div className="text-center">
-        <span className="text-5xl">🎭</span>
-        <h2 className="mt-2 text-2xl font-bold text-white">
-          {t('blankGuess.title')}
-        </h2>
+      <div className="flex flex-col items-center gap-3 text-center">
+        <Stamp color="alert" className="animate-stamp-in">
+          {t('roles.blank')}
+        </Stamp>
+        <span className="label">// {t('blankGuess.title')}</span>
       </div>
 
       {amTheBlank ? (
-        <Card className="flex flex-col gap-4 animate-pop-in">
+        <Card className="flex flex-col gap-4">
           <div className="text-center">
-            <p className="font-semibold text-brand-200">
-              {t('blankGuess.youAreBlank')}
-            </p>
-            <p className="mt-1 text-sm text-slate-400">{t('blankGuess.yourChance')}</p>
+            <p className="label text-amber">{t('blankGuess.youAreBlank')}</p>
+            <p className="mt-1.5 text-sm text-paper-dim">{t('blankGuess.yourChance')}</p>
           </div>
           <input
-            className="w-full rounded-2xl bg-ink-900/60 px-4 py-3 text-center text-lg text-white placeholder:text-slate-500 ring-1 ring-white/10 outline-none focus:ring-2 focus:ring-brand-400 disabled:opacity-50"
+            className="field text-center disabled:opacity-50"
             value={guess}
             onChange={(e) => setGuess(e.target.value)}
             placeholder={t('blankGuess.placeholder')}
@@ -62,9 +61,9 @@ export default function BlankGuessScreen({ roomState, selfId }: Props) {
           </Button>
         </Card>
       ) : (
-        <Card className="flex flex-col items-center gap-2 text-center animate-pop-in">
-          <span className="animate-pulse text-3xl">🤔</span>
-          <p className="font-medium text-slate-200">
+        <Card className="flex flex-col items-center gap-2 text-center">
+          <span className="label animate-flicker text-amber">···</span>
+          <p className="font-mono text-sm uppercase tracking-[0.12em] text-paper-dim">
             {eliminated
               ? t('blankGuess.waitingName', { name: eliminated.name })
               : t('blankGuess.waiting')}
