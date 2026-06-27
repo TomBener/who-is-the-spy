@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    min-height: 100%;
+  }
+
+  html {
+    /* Avoid the iOS rubber-band white flash showing through. */
+    background-color: #0b1020;
+  }
+
+  body {
+    margin: 0;
+    /* Deep ink gradient backdrop, fixed so it covers the full viewport. */
+    background: linear-gradient(160deg, #0b1020 0%, #0f172a 55%, #131c33 100%);
+    background-attachment: fixed;
+    color: #f8fafc;
+    font-family: theme('fontFamily.sans');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Disable tap highlight; we use active:scale for feedback instead. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Inputs inherit the dark theme by default. */
+  input,
+  button,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  /* Safe-area padding helpers for notch / home-bar devices. */
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  .safe-bottom {
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+  .safe-x {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* Non-selectable, tappable surfaces (cards/buttons). */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}

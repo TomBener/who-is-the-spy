@@ -1,0 +1,24 @@
+{
+  "name": "who-is-the-spy",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "谁是卧底 / Who is the Spy — multi-device party game (each player on their own phone)",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w @spy/server\" \"npm run dev -w @spy/client\"",
+    "build": "npm run build -w @spy/client",
+    "start": "npm run start -w @spy/server",
+    "typecheck": "npm run typecheck -w @spy/shared && npm run typecheck -w @spy/server && npm run typecheck -w @spy/client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

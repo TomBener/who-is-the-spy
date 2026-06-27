@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#4338ca"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- detective hat brim + crown -->
+  <ellipse cx="256" cy="196" rx="150" ry="34" fill="#0b1020"/>
+  <path d="M150 196c0-58 44-104 106-104s106 46 106 104z" fill="#0f172a"/>
+  <rect x="150" y="178" width="212" height="22" rx="11" fill="#1e293b"/>
+  <!-- spy mask -->
+  <g fill="#0b1020">
+    <path d="M128 300c0-26 21-44 50-44h48c10 0 18 6 22 14h16c4-8 12-14 22-14h48c29 0 50 18 50 44 0 34-26 60-62 60-30 0-52-18-60-42h-12c-8 24-30 42-60 42-36 0-62-26-62-60z"/>
+  </g>
+  <circle cx="196" cy="306" r="22" fill="#a5b4fc"/>
+  <circle cx="316" cy="306" r="22" fill="#a5b4fc"/>
+</svg>
