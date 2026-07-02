@@ -17,6 +17,8 @@ const en = {
       cancel: 'Cancel',
       confirm: 'OK',
       roomCode: 'Room',
+      leave: 'Leave room',
+      leaveConfirm: 'Leave this room? Your seat will be given up.',
     },
     home: {
       createTitle: 'Create a room',
@@ -100,8 +102,8 @@ const en = {
       theirWord: 'Their word: {{word}}',
       noWord: 'They had no word (Mr.White)',
       votes: '{{count}} votes',
-      tie: "It's a tie — no one out",
-      tieBody: 'No one was eliminated this round, the game goes on',
+      tie: 'No one eliminated',
+      tieBody: 'The vote was tied (or empty) — the game goes on',
       continue: 'Continue',
     },
     blankGuess: {

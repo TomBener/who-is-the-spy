@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import QR from 'qrcode';
 import clsx from 'clsx';
 
 interface QRCodeProps {
@@ -18,13 +17,18 @@ export default function QRCode({ value, size = 200, className }: QRCodeProps) {
 
   useEffect(() => {
     let cancelled = false;
-    QR.toDataURL(value, {
-      width: size,
-      margin: 1,
-      errorCorrectionLevel: 'M',
-      // Dark-on-light is required for reliable scanning.
-      color: { dark: '#0a0a0b', light: '#ffffff' },
-    })
+    // The qrcode lib is only needed in the lobby — load it on demand so it
+    // stays out of the main bundle.
+    import('qrcode')
+      .then(({ default: QR }) =>
+        QR.toDataURL(value, {
+          width: size,
+          margin: 1,
+          errorCorrectionLevel: 'M',
+          // Dark-on-light is required for reliable scanning.
+          color: { dark: '#0a0a0b', light: '#ffffff' },
+        }),
+      )
       .then((url) => {
         if (!cancelled) setDataUrl(url);
       })

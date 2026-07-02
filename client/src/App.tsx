@@ -10,6 +10,7 @@ import VoteScreen from '@/screens/VoteScreen';
 import VoteResultScreen from '@/screens/VoteResultScreen';
 import BlankGuessScreen from '@/screens/BlankGuessScreen';
 import ResultScreen from '@/screens/ResultScreen';
+import { resumeSession } from '@/lib/socket';
 import { bindSocket, useStore } from '@/store';
 
 export default function App() {
@@ -22,6 +23,14 @@ export default function App() {
   // Idempotent — bindSocket() also runs from main.tsx; guarded internally.
   useEffect(() => {
     bindSocket();
+  }, []);
+
+  // On a fresh page load, silently re-join the room from the last session
+  // (reload / PWA relaunch) so mid-game players don't land back on Home.
+  useEffect(() => {
+    void resumeSession(playerId);
+    // Boot-time only: playerId is stable for the life of the page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Keep <html lang> in sync with the active language.
@@ -75,8 +84,9 @@ export default function App() {
   return (
     <>
       <Header />
-      {/* Subtle reconnecting banner. */}
-      {!connected && (
+      {/* Subtle reconnecting banner — only meaningful once we're in a room
+          (on Home there is no socket to reconnect). */}
+      {!connected && roomState && (
         <div className="safe-x z-10">
           <div className="mx-auto -mt-1 mb-1 w-full max-w-md">
             <ReconnectBanner />
@@ -84,6 +94,11 @@ export default function App() {
         </div>
       )}
       {renderScreen()}
+      <footer className="safe-x safe-bottom pt-1 text-center">
+        <span className="label normal-case tracking-[0.14em] text-paper-dim">
+          Built by Fable 5
+        </span>
+      </footer>
       <Toast />
     </>
   );

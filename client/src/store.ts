@@ -61,5 +61,9 @@ export function bindSocket(): void {
   socket.on('room:state', (state) => setRoomState(state));
   socket.on('you:secret', (secret) => setSecret(secret));
   socket.on('you:id', (id) => setPlayerId(id));
+  // The room is gone (destroyed, or we left): drop back to the home screen.
+  socket.on('room:closed', () => {
+    useStore.setState({ roomState: null, secret: null });
+  });
   socket.on('error', (e) => setError(e.code || 'generic'));
 }

@@ -37,6 +37,8 @@ interface ListenerMap {
   'room:state': (state: RoomState) => void;
   'you:secret': (secret: SecretAssignment | null) => void;
   'you:id': (playerId: string) => void;
+  /** The room is gone (or we left it) — reset local game state, no reconnect. */
+  'room:closed': () => void;
   error: (e: ErrorEvent) => void;
 }
 
@@ -75,8 +77,52 @@ const listeners: { [K in EventName]: Array<ListenerMap[K]> } = {
   'room:state': [],
   'you:secret': [],
   'you:id': [],
+  'room:closed': [],
   error: [],
 };
+
+// ---- Session persistence (survive full page reloads) ----
+//
+// The WebSocket dies on reload, but the seat survives on the server (keyed by
+// the persistent playerId). Remembering {code, name} lets the app silently
+// re-join the same room on boot instead of dumping the player back on Home.
+
+const SESSION_KEY = 'spy:session';
+
+interface StoredSession {
+  code: string;
+  name: string;
+}
+
+function saveSession(session: StoredSession): void {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } catch {
+    /* private mode etc. — resume just won't work */
+  }
+}
+
+function clearSession(): void {
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function getSession(): StoredSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredSession>;
+    if (typeof parsed.code !== 'string' || typeof parsed.name !== 'string') {
+      return null;
+    }
+    return { code: parsed.code, name: parsed.name };
+  } catch {
+    return null;
+  }
+}
 
 function emitLocal<K extends EventName>(
   event: K,
@@ -171,9 +217,20 @@ function openSocket(code: string): void {
     }
   };
 
-  sock.onclose = () => {
+  sock.onclose = (ev) => {
     if (ws !== sock) return; // a newer socket already took over
     ws = null;
+    // Terminal closes (the room no longer exists, or the server confirmed our
+    // leave): stop reconnecting and tell the app to reset, instead of
+    // hammering a dead room forever.
+    if (ev.reason === 'room_not_found' || ev.reason === 'left') {
+      intentionalClose = true;
+      current = null;
+      clearSession();
+      emitLocal('disconnect');
+      emitLocal('room:closed');
+      return;
+    }
     emitLocal('disconnect');
     scheduleReconnect();
   };
@@ -209,6 +266,7 @@ function leave(): void {
   intentionalClose = true;
   clearReconnectTimer();
   current = null;
+  clearSession();
   reconnectDelay = RECONNECT_BASE_MS;
   if (ws) {
     const stale = ws;
@@ -289,6 +347,7 @@ async function postAck(path: string, body: unknown): Promise<AckResult> {
 export async function createRoom(payload: CreateRoomPayload): Promise<AckResult> {
   const result = await postAck(API_CREATE, payload);
   if (result.ok && result.code) {
+    saveSession({ code: result.code, name: payload.name });
     connect(result.code, payload.playerId);
   }
   return result;
@@ -298,7 +357,24 @@ export async function createRoom(payload: CreateRoomPayload): Promise<AckResult>
 export async function joinRoom(payload: JoinRoomPayload): Promise<AckResult> {
   const result = await postAck(API_JOIN, payload);
   if (result.ok) {
+    saveSession({ code: payload.code, name: payload.name });
     connect(payload.code, payload.playerId);
   }
   return result;
+}
+
+/**
+ * Try to re-join the room recorded in the last session (page reload / PWA
+ * relaunch). Silent: a stale or missing session just clears itself. Returns
+ * true when a resume was attempted successfully.
+ */
+export async function resumeSession(playerId: string): Promise<boolean> {
+  const session = getSession();
+  if (!session) return false;
+  const result = await joinRoom({ playerId, code: session.code, name: session.name });
+  if (!result.ok) {
+    clearSession();
+    return false;
+  }
+  return true;
 }

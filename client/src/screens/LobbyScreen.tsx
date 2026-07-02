@@ -98,8 +98,8 @@ export default function LobbyScreen({ roomState, isHost, selfId }: Props) {
               <NumberStepper
                 label={t('lobby.undercover')}
                 value={config.undercoverCount}
-                min={0}
-                max={Math.max(0, specialMax - config.blankCount)}
+                min={1}
+                max={Math.max(1, specialMax - config.blankCount)}
                 onChange={(v) => patchConfig({ undercoverCount: v })}
               />
               <NumberStepper

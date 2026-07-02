@@ -6,6 +6,12 @@ import { useStore } from '@/store';
 export default function Header() {
   const { t } = useTranslation();
   const roomState = useStore((s) => s.roomState);
+  const leaveRoom = useStore((s) => s.leaveRoom);
+
+  const handleLeave = () => {
+    // Leaving mid-game frees the seat for good — confirm before pulling out.
+    if (window.confirm(t('common.leaveConfirm'))) leaveRoom();
+  };
 
   return (
     <header className="safe-top safe-x sticky top-0 z-20 bg-noir-950">
@@ -34,6 +40,25 @@ export default function Header() {
               <span className="label text-paper-faint">№</span>
               <span className="code text-sm">{roomState.code}</span>
             </span>
+          )}
+          {roomState && (
+            <button
+              type="button"
+              onClick={handleLeave}
+              aria-label={t('common.leave')}
+              className="no-select grid h-8 w-8 place-items-center border border-noir-700 text-paper-dim transition hover:border-alert hover:text-alert active:translate-y-px"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                className="h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                aria-hidden
+              >
+                <path d="M6 3H3v10h3M10.5 5.5L13 8l-2.5 2.5M13 8H6.5" />
+              </svg>
+            </button>
           )}
           <LangToggle />
         </div>

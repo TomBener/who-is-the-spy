@@ -48,7 +48,7 @@ export default function VoteResultScreen({ roomState, isHost, selfId }: Props) {
           </div>
         </Card>
       ) : (
-        // Tie: server reports no elimination this round.
+        // No elimination this round: tied top vote, or nobody voted.
         <Card className="flex flex-col items-center gap-3 text-center">
           <Stamp color="paper" className="animate-stamp-in">
             {t('voteResult.tie')}

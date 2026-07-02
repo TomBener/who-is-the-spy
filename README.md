@@ -12,22 +12,24 @@ A multi-device party game for playing **谁是卧底 (Who is the Spy)** face-to-
 
 ## Architecture
 
-A single self-hosted Node service + a React SPA, sharing one TypeScript contract.
+A Cloudflare Worker (one Durable Object per room) + a React SPA, sharing one TypeScript contract.
 
 ```
 who-is-the-spy/
-├─ shared/   @spy/shared — types + socket event contract + category metadata (no answers)
-├─ server/   @spy/server — Node + socket.io: room manager, server-authoritative word dealing, game state machine, word bank
+├─ shared/   @spy/shared — types + HTTP/WS message contract + category metadata (no answers)
+├─ worker/   @spy/worker — Cloudflare Worker + RoomDO Durable Object: room manager, server-authoritative word dealing, game state machine, word bank; also serves the built SPA
 └─ client/   @spy/client — React + Vite + TS + Tailwind + i18next: mobile-first UI, PWA
 ```
 
-**Design rule:** role/word assignment is *server-authoritative*. The server emits each socket only its own `you:secret`; `room:state` never contains roles or words (until the game ends).
+Room create/join go over HTTP POST (`/api/create`, `/api/join`); all live game traffic rides a native WebSocket (`/ws?code=XXXX`) into the room's Durable Object, which persists state to DO storage (hibernation-safe).
+
+**Design rule:** role/word assignment is *server-authoritative*. The server sends each socket only its own `secret` message; the broadcast `state` never contains roles or words (until the game ends).
 
 ## Develop
 
 ```sh
 npm install            # installs all workspaces
-npm run dev            # server on :3001, client (Vite) on :5173 with /socket.io proxied
+npm run dev            # wrangler dev on :8787, client (Vite) on :5173 with /api + /ws proxied
 ```
 
 Open http://localhost:5173 on several devices/tabs on the same network.
@@ -35,8 +37,7 @@ Open http://localhost:5173 on several devices/tabs on the same network.
 ## Production
 
 ```sh
-npm run build          # builds the client into client/dist
-npm start              # serves client/dist + socket.io from the Node server
+npm run deploy         # builds the client into client/dist, then deploys the Worker (serves SPA + API)
 ```
 
 ## Status

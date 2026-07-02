@@ -32,6 +32,14 @@ interface SocketAttachment {
 }
 
 /**
+ * Grace period after a disconnect before we act on it (purge lobby seats,
+ * hand off the host crown). A page refresh drops the socket for only a second
+ * or two; without this grace, refreshing in the lobby would delete your seat
+ * (and destroy the room entirely if you were alone in it).
+ */
+const DISCONNECT_GRACE_MS = 30_000;
+
+/**
  * One Durable Object instance == one room. Holds the authoritative
  * {@link ServerRoom} plus every player's WebSocket via the Hibernation API.
  *
@@ -307,9 +315,10 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   /**
-   * A socket dropped. In the lobby we free the seat (and GC the room if empty);
-   * mid-game we keep the seat for reconnection and just mark them offline,
-   * handing off the host crown if they held it.
+   * A socket dropped. The seat is kept (marked offline) in every phase so a
+   * page refresh / brief network blip can resume it; the alarm below handles
+   * players who never come back (lobby seat purge + host handoff) after
+   * {@link DISCONNECT_GRACE_MS}.
    */
   private async onDisconnect(ws: WebSocket): Promise<void> {
     const attachment = ws.deserializeAttachment() as SocketAttachment | null;
@@ -320,15 +329,47 @@ export class RoomDO extends DurableObject<Env> {
     const seat = room.players.get(playerId);
     if (!seat) return;
 
-    if (room.phase === 'lobby') {
-      if (await this.removeSeat(room, playerId)) return; // room was destroyed
-      return;
-    }
-
     seat.connected = false;
-    if (room.hostId === playerId) reassignHost(room);
     await this.persist(room);
     this.broadcast(room);
+    await this.ctx.storage.setAlarm(Date.now() + DISCONNECT_GRACE_MS);
+  }
+
+  /**
+   * Deferred disconnect cleanup. Runs {@link DISCONNECT_GRACE_MS} after the
+   * most recent disconnect: purges lobby seats that never reconnected
+   * (destroying an emptied room), and hands the host crown to a connected
+   * player if the host is still gone.
+   */
+  override async alarm(): Promise<void> {
+    const room = await this.getRoom();
+    if (!room) return;
+    let changed = false;
+
+    if (room.phase === 'lobby') {
+      for (const p of [...room.players.values()]) {
+        if (!p.connected) {
+          room.players.delete(p.id);
+          changed = true;
+        }
+      }
+      if (room.players.size === 0) {
+        this.room = null;
+        await this.ctx.storage.deleteAll();
+        return;
+      }
+    }
+
+    const host = room.players.get(room.hostId);
+    if (!host || !host.connected) {
+      reassignHost(room);
+      changed = true;
+    }
+
+    if (changed) {
+      await this.persist(room);
+      this.broadcast(room);
+    }
   }
 
   /**
@@ -362,13 +403,16 @@ export class RoomDO extends DurableObject<Env> {
     }
   }
 
-  /** Send a private `secret` to whichever socket owns `playerId`. */
+  /**
+   * Send a private `secret` to every socket owned by `playerId` — a player may
+   * have more than one live socket (second tab, overlapping reconnect), and
+   * all of them must see the same secret.
+   */
   private sendSecret(playerId: string, secret: SecretAssignment | null): void {
     for (const ws of this.ctx.getWebSockets()) {
       const attachment = ws.deserializeAttachment() as SocketAttachment | null;
       if (attachment?.playerId === playerId) {
         send(ws, { t: 'secret', secret });
-        return;
       }
     }
   }

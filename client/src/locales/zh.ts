@@ -17,6 +17,8 @@ const zh = {
       cancel: '取消',
       confirm: '确定',
       roomCode: '房间号',
+      leave: '离开房间',
+      leaveConfirm: '确定离开房间吗？你的座位将被释放。',
     },
     home: {
       createTitle: '创建房间',
@@ -100,8 +102,8 @@ const zh = {
       theirWord: 'TA 的词是：{{word}}',
       noWord: 'TA 没有词（白板）',
       votes: '得票 {{count}}',
-      tie: '平票，无人出局',
-      tieBody: '这一轮没有人被淘汰，继续游戏',
+      tie: '无人出局',
+      tieBody: '平票或无人投票，这一轮没有人被淘汰，继续游戏',
       continue: '继续',
     },
     blankGuess: {

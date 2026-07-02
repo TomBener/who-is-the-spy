@@ -66,7 +66,9 @@ function clamp(n: number, lo: number, hi: number): number {
 export function applyConfig(room: ServerRoom, patch: Partial<GameConfig>): void {
   const c = room.config;
   if (patch.undercoverCount !== undefined) {
-    c.undercoverCount = clamp(patch.undercoverCount, 0, MAX_PLAYERS);
+    // At least one undercover is required for a valid game (startGame enforces
+    // it too); clamping here keeps the lobby from ever showing a dead config.
+    c.undercoverCount = clamp(patch.undercoverCount, 1, MAX_PLAYERS);
   }
   if (patch.blankCount !== undefined) {
     c.blankCount = clamp(patch.blankCount, 0, MAX_PLAYERS);
@@ -262,10 +264,11 @@ export function castVote(
  * Tally the current round's votes, eliminate the top target, and move to
  * `voteResult`.
  *
- * Tie-breaking: if several players share the highest vote count we eliminate
- * ONE of them chosen uniformly at random (documented per spec). If literally
- * nobody voted (host force-advanced an empty vote), no one is eliminated and
- * we still surface `voteResult` with `eliminated:null` so the host can move on.
+ * Tie rule: if several players share the highest vote count, NO ONE is
+ * eliminated this round (standard house rule — a random elimination would be
+ * unfair and contradicts what the UI tells players). Likewise if nobody voted
+ * (host force-advanced an empty vote). Both surface `voteResult` with
+ * `eliminated:null` and the game continues into another describe round.
  */
 export function tallyVotes(room: ServerRoom): void {
   // Reset displayed counts, then accumulate from the raw ballot map.
@@ -279,16 +282,16 @@ export function tallyVotes(room: ServerRoom): void {
   let max = 0;
   for (const p of alive) max = Math.max(max, p.votesReceived);
 
-  if (max === 0) {
-    // No votes at all — skip elimination this round.
+  const topTied = alive.filter((p) => p.votesReceived === max);
+
+  if (max === 0 || topTied.length > 1) {
+    // No votes, or a tie for the top spot — no elimination this round.
     room.eliminated = null;
     room.phase = 'voteResult';
     return;
   }
 
-  const topTied = alive.filter((p) => p.votesReceived === max);
-  // Random pick among the tied top candidates (uniform).
-  const victim = topTied[Math.floor(Math.random() * topTied.length)]!;
+  const victim = topTied[0]!;
   victim.alive = false;
 
   room.eliminated = {
