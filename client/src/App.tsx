@@ -96,7 +96,7 @@ export default function App() {
       {renderScreen()}
       <footer className="safe-x safe-bottom pt-1 text-center">
         <span className="label normal-case tracking-[0.14em] text-paper-dim">
-          Built by Fable 5
+          Built by Opus 4.8 · Tuned by Fable 5
         </span>
       </footer>
       <Toast />
